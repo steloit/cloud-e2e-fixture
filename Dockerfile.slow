@@ -1,0 +1,14 @@
+# The fixture built slowly, for the suite's tests of a Build ended while it
+# is Building — cancelled, or stopped at its maximum duration (steloit/cloud
+# #66): the sleep holds the Build for two minutes. A Build so ended exports
+# no cache, so the next is as slow.
+FROM golang:1.26-alpine AS build
+RUN sleep 120
+WORKDIR /src
+COPY go.mod main.go ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /fixture .
+
+FROM scratch
+COPY --from=build /fixture /fixture
+USER 1000:1000
+ENTRYPOINT ["/fixture"]
